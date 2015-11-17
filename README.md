@@ -33,13 +33,21 @@
 go get - u github.com/huichen/sego
 ```
 
-使用就是 导入，初始化，训练，测试
+使用就是 获取，导入，初始化，训练，测试
+
+获取：
+
+```
+go get -u github.com/safeie/bayesian-classifier
+```
+
+测试：
 
 ```
 package main
 
 import (
-	"bayesian-classifier/classifier"
+	"github.com/safeie/bayesian-classifier/classifier"
 	"fmt"
 )
 
@@ -62,8 +70,13 @@ func main() {
 	handler.Training("这是一篇Javascript的技巧", "js")
 
 	// 测试分类
-	score := handler.Categorize("你猜我说的这篇和开发有关的内容会是什么分类？")
-	printScore(score)
+	scores := handler.Categorize("你猜我说的这篇和开发有关的内容会是什么分类？")
+	if len(scores) == 0 {
+		fmt.Println("未知单词 Orz！")
+	}
+	for k := range scores {
+		fmt.Println(scores[k].Category, "\t", scores[k].Score)
+	}
 }
 ```
 
