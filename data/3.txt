@@ -1,0 +1,75 @@
+开发
+
+PHP异步：在PHP中使用 fsockopen curl 实现类似异步处理的功能
+唐霜唐霜 434 7月12日 发布
+推荐  1 推荐
+收藏  4 收藏，499 浏览
+本文仅作为本人学习过程中的一点心得，欢迎大家拍砖。
+
+PHP从主流来看，是一门面向过程的语言，它的最大缺点就是无法实现多线程管理，其程序的执行都是从头到尾，按照逻辑一路执行下来，不可能出现分支，这一点是限制php在主流程序语言中往更高级的语言发展的原因之一。
+
+在PHP中我们有的时候其实希望在执行某项操作的时候，同时去执行另外一项操作，举一个场景：在用户抢票的时候，你并不希望用户排队去连接数据库进行查询、判断、插入，完成之后再返回用户结果。其实我们并不需要用户等那么久的时间，用户提交之后，直接告诉他已经抢票成功了就可以了，至于各种操作，交给后台去处理就好。当然，这种情况我们现在都用消息列表来处理，把每一个用户提交的请求存在一个消息列队中，告诉用户已经搞定了，用户愉快的关掉页面之后，实际上后台还在一个一个从消息列队中取出请求进行操作。我们这篇文章则是通过一种异类的手法，实现操作在后台运行，无需用户等待。
+
+首先，我们要创建一个请求入口：
+
+<?php
+
+提交的数据
+
+提交给后台
+
+告诉用户已经搞定了
+其次，我们需要一个后台处理程序，用户是否在线并不影响它的运行：
+
+<?php
+
+ignore_user_abort(true);
+set_time_limit(0);
+
+过来的数据
+数据处理
+现在的问题是，在第一段代码中，如何“提交给后台”？我们通过一种非阻塞式的请求来实现这个功能。也就是创建一个可以被访问的url，在这个url运行第二段程序，通过一个请求来请求这个url，从而激活第二段程序自动运行。接下来我们直接看代码：
+
+// 远程请求（不获取内容）函数
+function _sock($url) {
+  $host = parse_url($url,PHP_URL_HOST);
+  $port = parse_url($url,PHP_URL_PORT);
+  $port = $port ? $port : 80;
+  $scheme = parse_url($url,PHP_URL_SCHEME);
+  $path = parse_url($url,PHP_URL_PATH);
+  $query = parse_url($url,PHP_URL_QUERY);
+  if($query) $path .= '?'.$query;
+  if($scheme == 'https') {
+    $host = 'ssl://'.$host;
+  }
+
+  $fp = fsockopen($host,$port,$error_code,$error_msg,1);
+  if(!$fp) {
+    return array('error_code' => $error_code,'error_msg' => $error_msg);
+  }
+  else {
+    stream_set_blocking($fp,true);//开启了手册上说的非阻塞模式
+    stream_set_timeout($fp,1);//设置超时
+    $header = "GET $path HTTP/1.1\r\n";
+    $header.="Host: $host\r\n";
+    $header.="Connection: close\r\n\r\n";//长连接关闭
+    fwrite($fp, $header);
+    usleep(1000); // 这一句也是关键，如果没有这延时，可能在nginx服务器上就无法执行成功
+    fclose($fp);
+    return array('error_code' => 0);
+  }
+}
+我们创建了一个基于fsockopen的函数，这个函数中利用fsockopen去访问url，但是在访问时，并不要求获取url显示的内容，而是仅仅发出访问请求，请求到达后马上关闭这个访问。这样做的好处就是无需再等待被访问的url是否返回了可靠的信息，节约了时间，这段代码的执行时间在0.1-0.2秒之间，对于普通访客而言，几乎察觉不到。因此，在使用时，仅需要调用这个函数和对应的url即可。不过，这里并没有提供数据传输的部分，如何传输数据，其实只需要在$header中增加post的内容即可。
+
+除了fsockopen，curl其实也可以实现这样的效果，有些主机上并不支持fsockopen，我们就可以使用curl来实现。
+
+function _curl($url) {
+  $ch = curl_init();
+  curl_setopt($ch,CURLOPT_URL,$url);
+  curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+  curl_setopt($ch,CURLOPT_TIMEOUT,1);
+  $result = curl_exec($ch);
+  curl_close($ch);
+  return $result;
+}
+这段代码的关键是提供了一个Timeout，仅1秒钟，也就是说curl发出请求，无论是否接收到返回的内容，1秒钟之后都会关闭该访问，因此这个函数的执行数据为1.0-1.1秒之间。但对于用户来说，如果是一个需要进行数据处理的应用，1秒中的等待几乎是被忽略的，如果你希望用一段更简单和容易被理解的代码，可以选择curl来实现。

@@ -1,0 +1,53 @@
+开发
+
+Golang计算MD5
+1.单向加密
+什么是单向加密算法。简而言之就是不可解密的加密方法，也叫作非可逆加密。这些学术 解释都不用管它，反正就是一群数学家老爷爷通过各种证明得到的一种方法，用这种方法加密 过的东西，地球上现有的人类在有限的时间内是无法解密的，包括加密者自己。既然加密者自己 都无法解密，那这乖僻的加密算法有个毛用阿？哪些场景需要这种有去无回的加密方式呢？
+这里先了解下单向加密的特征： 首先，不可解密性在上面已经提到了，目的就是掩藏明文。其次单向加密算法的另外两个特征 使得它更接地气，第一是任意两段明文数据，加密以后的密文不能是相同的； 第二是任意一段明文数据，经过加密以后，其结果必须永远是不变的。这样当我们需要表征一段 唯一的内容，但是有不想别人知道该段内容时或者仅仅是为一个内容打上一个唯一的ID时，就可以 尝试下单向加密算法。
+比如，如果想对一段内容做缓存操作，为了更快的找到其内容，使用K-V的存储方式。那么该如何 构建Key呢？当然有很多方法，比如时间。通过上面“"不同明文加密结果不同"特征，我们可以 用对该内容作单向加密，然后用加密结果做为key。又比如在用户登陆的场景中，害怕别人通过劫 包的方式获取用户秘密，我们可以将该秘密进行单向加密存放到数据库中，之后的验证都对用户 输入的秘密进行单向加密，确保其在传输过程中“"不可见"。
+那么常用的单向加密算法有哪些呢？ 主要有：BASE64、MD5、SHA、HMAC，其中最为常见的就有MD5，BASE64。这里我们主要介绍最常 使用的MD5算法。该算法可以用来得到一个128bit的值，既可以作为K-V中的key，也可以对密码 进行加密从而确保其在传输中"不可见"。
+2.经典的MD5API
+在C系列中计算MD5的API一般有如下几个API构成。
+init ：获得一个md5上下文
+append/update : 添加明文，可以多次添加
+final: 执行计算操作
+digest/hex_digest: 获得加密结果,结果为128bit内存值或者其32个16进制表示法。
+Python的标准库中也是提供了这几个API，除此之外还提供了一个直接从文件中获得明文计算MD5的 方法
+3.Golang的"crypto/md5"
+Golang的加密库都放在crypto目录下，其中MD5库在crypto/md5包中，该包主要提供了New和Sum函数。 乍一看和以往的使用不太一样。但是看完例子后发现，其宗旨还是一样的，都是先创建一个MD5对象， 然后更新明文，接着加密输出，最后打扫战场。
+先看个示例：
+package main
+
+import (
+    "crypto/md5"
+    "fmt"
+    "encoding/hex"
+)
+
+func main(){
+
+    md5Ctx := md5.New()
+    md5Ctx.Write([]byte("test md5 encrypto"))
+    cipherStr := md5Ctx.Sum(nil)
+    fmt.Print(cipherStr)
+    fmt.Print("\n")
+    fmt.Print(hex.EncodeToString(cipherStr))
+}
+这里直接对一串字符串计算MD5。其中通过md5.New()初始化一个MD5对象，其实它是一个hash.Hash对象。 函数原型为 func New() hash.Hash 。该对象实现了hash.Hash的Sum接口：计算出校验和。其函数原型 为 func Sum(data []byte) [Size]byte 这里的官方Manual对其的描述我感觉有点问题。其官方描述为: " Sum returns the MD5 checksum of the data. "
+通过翻阅源码可以看到他并不是对data进行校验计算，而是对hash.Hash对象内部存储的内容进行校验和 计算然后将其追加到data的后面形成一个新的byte切片。因此通常的使用方法就是将data置为nil
+该方法返回一个Size大小的byte数组，对于MD5来说就是一个128bit的16字节byte数组。这里通过 []byte() 将一个字符串转换成byte数组，还可以通过byte的其他接口进行转换，Write方法在下面进行 说明。 hash.Hash对象内的存储内容进行校验和计算。那这个存储内容是放在哪呢？通过Golang标准库的代码 md5.go，可以找到
+type digest struct {
+    s   [4]uint32
+    x   [chunk]byte
+    nx  int
+    len uint64
+}
+这样的类型。其内容就存在64字节的byte数组中。
+4.明文接口
+hash.Hash继承了io.Write。因此可以将其当成一个输入流进行内容的更新。上面已经看到了Write方法， 这里对其进行详细介绍。该方法是从io.Write继承而来，确切的说是继承了一个接口，然后去实现它。 函数原型为： Write(p []byte) (n int, err error) ,将p中的内容读入并进行计算后存入到上面 digest的byte内存x中去。最后通过内部函数checkSum计算出其校验和。
+因此我们可以将Write方法看成是C系中的Update方法。Sum看成是Final方法。从上我们看到其结构为 128bit的内存表示法。那如何得到其32字节的16进制表示法呢？这里我们可以使用encoding/hex包中的 EncodeToString方法对其进行编码.函数原型为 func EncodeToString(src []byte) string 直接 将Sum的返回结果给到src即可。这样我们就可以进行简单的对应来快速熟悉Golang的MD5接口操作了：
+init()       -- vs --   md5.New()
+update()     -- vs --   md5Ctx.Write()
+final()      -- vs --   md5Ctx.Sum(nil)
+hex_digest() -- vs --   hex.EncodeToString()
+有了这几个接口，就可以很方便的自己包装一个对文件计算md5值的接口了。
