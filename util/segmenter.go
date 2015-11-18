@@ -13,7 +13,7 @@ func NewSegmenter() *Segmenter {
 	client := new(Segmenter)
 	// 载入词典
 	dir := GetDir()
-	client.segmenter.LoadDictionary(dir + "/../github.com/huichen/sego/data/dictionary.txt")
+	client.segmenter.LoadDictionary(dir + "/../../huichen/sego/data/dictionary.txt")
 	return client
 }
 
