@@ -54,7 +54,7 @@ func main() {
 	testDoc(handler, "服务器")
 
 	// 暂停
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 15)
 }
 
 // 辅助测试：测试单词的频率

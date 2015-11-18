@@ -12,7 +12,7 @@ type Segmenter struct {
 func NewSegmenter() *Segmenter {
 	client := new(Segmenter)
 	// 载入词典
-	dir, _ := GetDir()
+	dir := GetDir()
 	client.segmenter.LoadDictionary(dir + "/../github.com/huichen/sego/data/dictionary.txt")
 	return client
 }

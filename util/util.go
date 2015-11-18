@@ -27,38 +27,40 @@ func Command(pro string, argv []string, baseDir string) ([]byte, error) {
 }
 
 // 获取程序运行的目录
-func GetDir() (string, error) {
+func GetDir() string {
 	path, err := filepath.Abs(os.Args[0])
 	if err != nil {
-		return "", err
+		return ""
 	}
-	return filepath.Dir(path), nil
+	return filepath.Dir(path)
 }
 
 // 判断一个文件或目录是否存在
-func IsExist(path string) (bool, error) {
+// 存在时返回 true, 不存在返回 false
+func IsExist(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
-		return true, nil
+		return true
 	}
 	// Check if error is "no such file or directory"
 	if _, ok := err.(*os.PathError); ok {
-		return false, nil
+		return false
 	}
-	return false, err
+	return false
 }
 
 // 判断一个文件或目录是否有写入权限
-func IsWritable(path string) (bool, error) {
+// 可写时返回 true, 不可写返回 false
+func IsWritable(path string) bool {
 	err := syscall.Access(path, syscall.O_RDWR)
 	if err == nil {
-		return true, nil
+		return true
 	}
 	// Check if error is "no such file or directory"
 	if _, ok := err.(*os.PathError); ok {
-		return false, nil
+		return false
 	}
-	return false, err
+	return false
 }
 
 // 读取一个文件夹返回文件列表
@@ -117,6 +119,7 @@ func ReadFile(path string) ([]byte, error) {
 	return ioutil.ReadAll(f)
 }
 
+// 计算一个字符串的MD5
 func MD5(str string) string {
 	hexStr := md5.Sum([]byte(str))
 	return hex.EncodeToString(hexStr[:])

@@ -4,10 +4,10 @@ import (
 	"bayesian-classifier/storage"
 	"bayesian-classifier/util"
 	"log"
-	//"runtime"
-	//"strconv"
+	"runtime"
+	"strconv"
 	"strings"
-	//"time"
+	"time"
 )
 
 type Classifier struct {
@@ -53,25 +53,23 @@ func NewClassifier(config map[string]interface{}) *Classifier {
 	// 初始化分词器
 	t.segmenter = util.NewSegmenter()
 
-	/*
-		// 加载数据
-		log.Println("加载数据...")
-		t.Import()
+	// 加载数据
+	log.Println("加载数据", storageConfig["path"])
+	t.Import()
 
-		// 自动保存数据
-		frequency, _ := strconv.Atoi(storageConfig["frequency"])
-		if frequency > 0 {
-			log.Println("开启自动数据自动保存")
-			go func() {
-				var err error
-				time.Sleep(time.Second * time.Duration(frequency))
-				err = t.Export()
-				if err != nil {
-					runtime.Goexit()
-				}
-			}()
-		}
-	*/
+	// 自动保存数据
+	frequency, _ := strconv.Atoi(storageConfig["frequency"])
+	if frequency > 0 {
+		log.Println("开启自动数据自动保存")
+		go func() {
+			var err error
+			time.Sleep(time.Second * time.Duration(frequency))
+			err = t.Export()
+			if err != nil {
+				runtime.Goexit()
+			}
+		}()
+	}
 
 	log.Println("初始化完成.\n")
 	return t
