@@ -1,3 +1,4 @@
+// 贝叶斯分类器（Naive Bayesian classifier）支持中文文档解析训练和分类
 package main
 
 import (
@@ -6,11 +7,14 @@ import (
 	"time"
 )
 
+// 如果开启HTTP，进程将不会立即结束，等待一个结束标志
+
 const (
 	DEFAULT_PROB      = 0.5            // 默认概率
 	DEFUALT_WEIGHT    = 1.0            // 默认概率的权重，假定与一个单词相当
 	DEBUG             = true           // 开启调试
-	EANBLE_HTTP       = false          // 开启HTTP服务
+	HTTP              = true           // 开启HTTP服务
+	HTTP_PORT         = ":8812"        // HTTP端口
 	STORAGE           = "file"         // 存储引擎，接受 file,redis，目前只支持file
 	STORAGE_PATH      = "storage.data" // 文件存储引擎的存储路径
 	STORAGE_FREQUENCY = "10"           // 自动存储的频率, 单位: 秒，0 表示不自动存储
@@ -19,14 +23,15 @@ const (
 func main() {
 	// 分类器
 	handler := classifier.NewClassifier(map[string]interface{}{
-		"defaultProb":   DEFAULT_PROB,   // 默认概率
-		"defaultWeight": DEFUALT_WEIGHT, // 默认概率的权重，假定与一个单词相当
-		"debug":         DEBUG,          // 开启调试
-		"enableHttp":    EANBLE_HTTP,    // 开启HTTP服务
+		"defaultProb":   DEFAULT_PROB,
+		"defaultWeight": DEFUALT_WEIGHT,
+		"debug":         DEBUG,
+		"http":          HTTP,
+		"httpPort":      HTTP_PORT,
 		"storage": map[string]string{
-			"adapter":   STORAGE,           // 存储引擎，接受 file,redis，目前只支持file
-			"path":      STORAGE_PATH,      // 文件存储引擎的存储路径
-			"frequency": STORAGE_FREQUENCY, // 自动存储的频率, 单位: 秒，0 表示不自动存储
+			"adapter":   STORAGE,
+			"path":      STORAGE_PATH,
+			"frequency": STORAGE_FREQUENCY,
 		},
 	})
 
@@ -55,6 +60,13 @@ func main() {
 
 	// 暂停
 	time.Sleep(time.Second * 15)
+
+	// 开启了HTTP服务，不能结束进程
+	if HTTP {
+		for {
+			time.Sleep(time.Second)
+		}
+	}
 }
 
 // 辅助测试：测试单词的频率

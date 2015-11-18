@@ -14,7 +14,6 @@ type Classifier struct {
 	segmenter     *util.Segmenter      // 分词器
 	defaultProb   float64              // 单词在某一分类中出现的默认概率（不存在时）
 	defaultWeight float64              // 默认概率的权重
-	enableHttp    bool                 // 是否开启HTTP服务
 	debug         bool                 // 是否开启调试
 	storage       *storage.FileStorage // 存储引擎
 	Data          *ClassifierData      // 存储数据
@@ -33,7 +32,6 @@ func NewClassifier(config map[string]interface{}) *Classifier {
 	// 配置信息
 	t.defaultProb = config["defaultProb"].(float64)
 	t.defaultWeight = config["defaultWeight"].(float64)
-	t.enableHttp = config["enableHttp"].(bool)
 	t.debug = config["debug"].(bool)
 
 	// 初始化数据结构
@@ -69,6 +67,17 @@ func NewClassifier(config map[string]interface{}) *Classifier {
 				runtime.Goexit()
 			}
 		}()
+	}
+
+	// 初始化HTTP服务
+	enableHttp := config["http"].(bool)
+	if enableHttp {
+		port := config["httpPort"].(string)
+		log.Println("Http服务器启动", port)
+		httpServ := NewHttp(port, t)
+		go httpServ.Start()
+	} else {
+		log.Println("Http服务未启动")
 	}
 
 	log.Println("初始化完成.\n")
