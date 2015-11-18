@@ -170,7 +170,7 @@ func Import() error
 训练：
 
 ```
-http://localhost:8812/api/train?doc=单词&category=分类
+http://localhost:8812/api/train?doc=文档&category=分类
 ```
 
 获取单词统计：
