@@ -9,8 +9,8 @@ type Score struct {
 }
 
 type ScoreItem struct {
-	Category string  // 分类名称
-	Score    float64 // 概率值
+	Category string  `json:"category"` // 分类名称
+	Score    float64 `json:"score"`    // 概率值
 }
 
 func NewScores() *Score {

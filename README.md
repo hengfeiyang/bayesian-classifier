@@ -16,11 +16,16 @@
 1. 分类器构建完成
 2. 基本接口可提供服务
 3. 训练数据的保存和加载的存储器已完成
+4. WEB Api已完成，再做一个简单的交互界面
 
 ## TODO
 
-1. 提供WEB界面，用于训练和查询分析
-2. 抓个蜘蛛爬取大量数据构建测试
+1. 抓个蜘蛛爬取大量数据构建测试
+2. 性能优化，现在很占内存
+
+## 问题
+
+1. 发现现在的模型有问题，尝试分类文档时，由于每个单词的概率都是小于0的，所有单词的乘积是非常小的一个值，以至于被忽略成0了
 
 ## 使用
 
@@ -55,8 +60,9 @@ func main() {
 	handler := classifier.NewClassifier(map[string]interface{}{
 		"defaultProb":   0.5,			// 默认概率
 		"defaultWeight": 1.0,			// 默认概率的权重，假定与一个单词相当
-		"enableHttp":    false,			// 开启调试
-		"debug":         false,			// 开启HTTP服务
+		"debug":         false,			// 开启调试
+		"http":          true,			// 开启HTTP服务
+		"httpPort":      ":8812",		// HTTP服务端口
 		"storage": map[string]string{
 			"adapter":   "file",			// 存储引擎，接受 file,redis，目前只支持file
 			"path":      "storage.data",	// 文件存储引擎的存储路径
@@ -155,6 +161,28 @@ func Export() error
 
 ```
 func Import() error
+```
+
+##WEB API
+
+接收GET/POST传参
+
+训练：
+
+```
+http://localhost:8812/api/train?word=单词&category=分类
+```
+
+获取单词统计：
+
+```
+http://localhost:8812/api/score?word=单词
+```
+
+分类：
+
+```
+http://localhost:8812/api/categorize?doc=文本内容
 ```
 
 ## 资料
