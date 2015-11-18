@@ -1,8 +1,8 @@
 package classifier
 
 import (
-	"bayesian-classifier/storage"
-	"bayesian-classifier/util"
+	"github.com/safeie/bayesian-classifier/storage"
+	"github.com/safeie/bayesian-classifier/util"
 	"log"
 	"runtime"
 	"strconv"

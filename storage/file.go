@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"bayesian-classifier/util"
 	"encoding/json"
 	"errors"
+	"github.com/safeie/bayesian-classifier/util"
 	"io/ioutil"
 	"path/filepath"
 )

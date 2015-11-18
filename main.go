@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bayesian-classifier/classifier"
 	"fmt"
+	"github.com/safeie/bayesian-classifier/classifier"
 	"time"
 )
 

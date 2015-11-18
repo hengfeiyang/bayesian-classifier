@@ -1,7 +1,7 @@
 package classifier
 
 import (
-	"bayesian-classifier/util"
+	"github.com/safeie/bayesian-classifier/util"
 )
 
 // 从指定的目录读取txt文件进行训练
