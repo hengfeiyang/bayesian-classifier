@@ -9,7 +9,7 @@
 ## HTTP 演示
 
 ```
-http://zuomeng.me:8812/
+http://demo.zuomeng.me:8812/
 ```
 
 > 注意
