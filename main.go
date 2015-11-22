@@ -1,37 +1,36 @@
-// 贝叶斯分类器（Naive Bayesian classifier）支持中文文档解析训练和分类
+// 贝叶斯分类器（Naive Bayesian classifier）支持中文文档解析训练和分类，提供HTTP API访问。
 package main
 
 import (
 	"fmt"
-	"github.com/safeie/bayesian-classifier/classifier"
 	"time"
+
+	"github.com/safeie/bayesian-classifier/classifier"
 )
 
-// 如果开启HTTP，进程将不会立即结束，等待一个结束标志
-
 const (
-	DEFAULT_PROB      = 0.5            // 默认概率
-	DEFUALT_WEIGHT    = 1.0            // 默认概率的权重，假定与一个单词相当
-	DEBUG             = true           // 开启调试
-	HTTP              = true           // 开启HTTP服务
-	HTTP_PORT         = ":8812"        // HTTP端口
-	STORAGE           = "file"         // 存储引擎，接受 file,redis，目前只支持file
-	STORAGE_PATH      = "storage.data" // 文件存储引擎的存储路径
-	STORAGE_FREQUENCY = "10"           // 自动存储的频率, 单位: 秒，0 表示不自动存储
+	DefaultProb      = 0.5            // 默认概率
+	DefaultWeight    = 1.0            // 默认概率的权重，假定与一个单词相当
+	Debug            = true           // 开启调试
+	HTTP             = true           // 开启HTTP服务
+	HTTPPort         = ":8812"        // HTTP端口
+	Storage          = "file"         // 存储引擎，接受 file,redis，目前只支持file
+	StoragePath      = "storage.data" // 文件存储引擎的存储路径
+	StorageFrequency = "10"           // 自动存储的频率, 单位: 秒，0 表示不自动存储
 )
 
 func main() {
 	// 分类器
 	handler := classifier.NewClassifier(map[string]interface{}{
-		"defaultProb":   DEFAULT_PROB,
-		"defaultWeight": DEFUALT_WEIGHT,
-		"debug":         DEBUG,
+		"defaultProb":   DefaultProb,
+		"defaultWeight": DefaultWeight,
+		"debug":         Debug,
 		"http":          HTTP,
-		"httpPort":      HTTP_PORT,
+		"httpPort":      HTTPPort,
 		"storage": map[string]string{
-			"adapter":   STORAGE,
-			"path":      STORAGE_PATH,
-			"frequency": STORAGE_FREQUENCY,
+			"adapter":   Storage,
+			"path":      StoragePath,
+			"frequency": StorageFrequency,
 		},
 	})
 

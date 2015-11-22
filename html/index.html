@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>贝叶斯分类器（Naive Bayesian classifier）</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="/assets/css/index.css" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!--[if lt IE 9]>
+      <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+  <!-- Fixed navbar -->
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+        aria-controls="navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">贝叶斯分类器</a>
+      </div>
+      <div id="navbar" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="#">主页</a></li>
+          <li><a href="#train">训练</a></li>
+          <li><a href="#score">数据</a></li>
+          <li><a href="https://github.com/safeie/bayesian-classifier">Github</a></li>
+        </ul>
+      </div>
+      <!--/.nav-collapse -->
+    </div>
+  </nav>
+
+  <div class="container theme-showcase" role="main">
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <h1>贝叶斯分类器（Naive Bayesian classifier）</h1>
+      <p>通过一个spider抓取大量内容和分类交给分类器学习，使用朴素贝叶斯方法给未知内容分类。
+        <br/> 提供一个web服务进行学习和测试，将训练过的分类器保存起来可后续载入使用。
+      </p>
+    </div>
+  </div>
+  <!-- /container -->
+
+  <div class="container">
+    <h2 id="home" class="page-header">分析</h2>
+
+    <div class="row">
+
+      <div class="col-xs-6 col-lg-6">
+        <form id="categorizeForm">
+          <div class="form-group">
+            <label for="document">输入一段想分析的文字：</label>
+            <textarea class="document" class="form-control" name="document" placeholder="内容"></textarea>
+          </div>
+          <input type="button" class="btn btn-default" value="开始分类" />
+        </form>
+      </div>
+
+      <div class="col-xs-6 col-lg-6">
+        <p>分类结果：</p>
+        <ul class="list-unstyled categorizeResult">
+        </ul>
+      </div>
+
+    </div>
+    <!-- /row -->
+
+  </div>
+  <!-- /container -->
+
+  <div class="container">
+    <h2 id="train" class="page-header">训练</h2>
+
+    <div class="row">
+
+      <div class="col-xs-6 col-lg-6">
+        <form id="trainForm">
+          <div class="form-group">
+            <label for="document">输入一段要学习的文字：</label>
+            <textarea class="document" class="form-control" name="document" placeholder="内容"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="category">输入该文字的正确分类：</label>
+            <input class="form-control" name="category" placeholder="分类"></textarea>
+          </div>
+          <input type="button" class="btn btn-default" value="开始训练" />
+        </form>
+      </div>
+      
+      <div class="col-xs-6 col-lg-6">
+        <p>执行结果：</p>
+        <ul class="list-unstyled trainResult">
+        </ul>
+      </div>
+
+    </div>
+    <!-- /row -->
+
+  </div>
+  <!-- /container -->
+
+  <div class="container">
+    <h2 id="score" class="page-header">数据</h2>
+
+    <div class="row">
+
+      <div class="col-xs-6 col-lg-6">
+        <form id="scoreForm">
+          <div class="form-group">
+            <label for="word">输入查询的单词：</label>
+            <input class="form-control" name="word" placeholder="单词"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="category">输入测试的分类：</label>
+            <input class="form-control" name="category" placeholder="分类，允许为空"></textarea>
+          </div>
+          <input type="button" class="btn btn-default" value="查询" />
+        </form>
+      </div>
+      
+      <div class="col-xs-6 col-lg-6">
+        <p>查询结果：</p>
+        <ul class="list-unstyled scoreResult">
+        </ul>
+      </div>
+
+    </div>
+    <!-- /row -->
+    
+    <footer>
+      <hr/>
+        <div class="row footer-bottom">
+          <ul class="list-inline text-center">
+            <li><a href="https://github.com/safeie/" target="_blank">@safeie</a></li>
+          </ul>
+        </div>
+
+    </footer>
+
+  </div>
+  <!-- /container -->
+
+  <!-- Bootstrap core JavaScript
+    ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="/assets/js/index.js"></script>
+
+</body>
+
+</html>

@@ -3,13 +3,18 @@ package classifier
 import (
 	"encoding/json"
 	"fmt"
-	//"github.com/safeie/bayesian-classifier/util"
+	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/safeie/bayesian-classifier/util"
 )
 
-type Http struct {
+// HTTP 提供了HTTP接口的结构体
+type HTTP struct {
 	port       string
+	tplDir     string
+	assetsDir  string
 	classifier *Classifier
 }
 
@@ -19,30 +24,39 @@ type result struct {
 	Data    interface{} `json:"data"`
 }
 
-func NewHttp(port string, classifier *Classifier) *Http {
-	t := new(Http)
+// NewHTTP create a HTTP
+func NewHTTP(port string, classifier *Classifier) *HTTP {
+	t := new(HTTP)
 	t.port = port
+	rootDir := util.GetDir()
+	t.tplDir = rootDir + "/html"
+	t.assetsDir = rootDir + "/assets"
 	t.classifier = classifier
 	return t
 }
 
-func (t *Http) Start() {
-	//dir := util.GetDir()
+// Start the http service
+func (t *HTTP) Start() {
 	http.HandleFunc("/", t.handleIndex)
-	//http.Handle("/assets", http.FileServer(dir+"/assets"))
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(t.assetsDir))))
 	http.HandleFunc("/api/train", t.handleTrain)
 	http.HandleFunc("/api/score", t.handleScore)
 	http.HandleFunc("/api/categorize", t.handleGategorize)
 	log.Fatal(http.ListenAndServe(t.port, nil))
 }
 
-func (t *Http) handleIndex(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	fmt.Fprintf(w, "this is index")
+func (t *HTTP) handleIndex(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	tpl, err := template.ParseFiles(t.tplDir + "/index.html")
+	if err != nil {
+		fmt.Fprintln(w, output(1, err.Error(), nil))
+		return
+	}
+	tpl.Execute(w, nil)
 }
 
 // 训练接口
-func (t *Http) handleTrain(w http.ResponseWriter, r *http.Request) {
+func (t *HTTP) handleTrain(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	doc := r.FormValue("doc")
 	category := r.FormValue("category")
@@ -51,7 +65,7 @@ func (t *Http) handleTrain(w http.ResponseWriter, r *http.Request) {
 }
 
 // 获取单词分类接口
-func (t *Http) handleScore(w http.ResponseWriter, r *http.Request) {
+func (t *HTTP) handleScore(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	word := r.FormValue("word")
 	category := r.FormValue("category")
@@ -60,7 +74,7 @@ func (t *Http) handleScore(w http.ResponseWriter, r *http.Request) {
 }
 
 // 分类接口
-func (t *Http) handleGategorize(w http.ResponseWriter, r *http.Request) {
+func (t *HTTP) handleGategorize(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	doc := r.FormValue("doc")
 	scores := t.classifier.Categorize(doc)
